@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local RAG Builder — UI モックアップ</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif;background:#0e1117;color:#fafafa;display:flex;min-height:100vh}
+
+/* === Sidebar === */
+.sidebar{width:300px;min-width:300px;background:#262730;padding:24px 20px;border-right:1px solid #3a3a4a;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.sidebar h1{font-size:20px;margin-bottom:2px}
+.sidebar .caption{font-size:13px;color:#888;margin-bottom:12px}
+.sidebar hr{border:none;border-top:1px solid #3a3a4a;margin:14px 0}
+.sidebar h3{font-size:14px;color:#fafafa;margin-bottom:8px}
+.sidebar label{display:block;font-size:13px;color:#ccc;margin-bottom:10px}
+.sidebar select,.sidebar input[type="text"]{
+  width:100%;background:#0e1117;color:#fafafa;border:1px solid #3a3a4a;
+  border-radius:6px;padding:7px 10px;font-size:13px;margin-top:4px;
+}
+.sidebar select:focus,.sidebar input:focus{border-color:#ff4b4b;outline:none}
+
+/* コレクション */
+.col-item{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.col-header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600}
+.col-header:hover{background:#22223a}
+.col-body{padding:8px 12px 12px;font-size:12px;color:#aaa;border-top:1px solid #3a3a4a}
+.col-body span{display:block;margin-bottom:3px}
+.btn-del{background:#ff4b4b22;color:#ff4b4b;border:1px solid #ff4b4b44;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer}
+.btn-del:hover{background:#ff4b4b33}
+.info-box{background:#1a1a2e;border:1px solid #3a3a4a;border-radius:6px;padding:10px 12px;font-size:13px;color:#888;text-align:center}
+
+/* === Main === */
+.main{flex:1;padding:32px 48px;overflow-y:auto;max-width:960px}
+.main h2{font-size:22px;margin-bottom:16px}
+.main h3{font-size:16px;margin:20px 0 10px;color:#ddd}
+
+/* Upload area */
+.upload-area{
+  border:2px dashed #3a3a4a;border-radius:10px;padding:40px 24px;
+  text-align:center;color:#888;margin-bottom:20px;transition:border-color .2s;
+}
+.upload-area:hover{border-color:#ff4b4b}
+.upload-area .icon{font-size:36px;margin-bottom:8px}
+.upload-area p{font-size:14px}
+.upload-area .hint{font-size:12px;color:#666;margin-top:6px}
+
+/* Success bar */
+.success-bar{background:#0e4429;border:1px solid #1a7f37;border-radius:6px;padding:10px 14px;font-size:13px;color:#56d364;margin-bottom:16px}
+.info-bar{background:#0d1f3c;border:1px solid #1f6feb;border-radius:6px;padding:10px 14px;font-size:13px;color:#58a6ff;margin-bottom:16px}
+
+/* Expander */
+.expander{border:1px solid #3a3a4a;border-radius:8px;margin-bottom:16px;overflow:hidden}
+.expander-header{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;background:#1a1a2e}
+.expander-header:hover{background:#22223a}
+.expander-header .arrow{font-size:10px;color:#888;transition:transform .2s}
+.expander-body{padding:14px;font-size:13px;color:#ccc;background:#0e1117;display:none}
+.expander.open .expander-body{display:block}
+.expander.open .arrow{transform:rotate(90deg)}
+.page-block{margin-bottom:12px}
+.page-block .page-label{font-size:12px;font-weight:700;color:#ff4b4b;margin-bottom:4px}
+.page-block pre{background:#1a1a2e;border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.6;color:#ccc;white-space:pre-wrap;word-wrap:break-word;max-height:120px;overflow:hidden}
+.page-sep{border:none;border-top:1px solid #2a2a3a;margin:8px 0}
+
+/* Columns */
+.cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.cols label{display:block;font-size:13px;color:#ccc}
+.cols input[type="number"]{
+  width:100%;background:#0e1117;color:#fafafa;border:1px solid #3a3a4a;
+  border-radius:6px;padding:7px 10px;font-size:13px;margin-top:4px;
+}
+.cols input:focus{border-color:#ff4b4b;outline:none}
+
+/* Buttons */
+.btn{border:none;border-radius:6px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-secondary{background:#262730;color:#fafafa;border:1px solid #3a3a4a}
+.btn-secondary:hover{background:#333;border-color:#555}
+.btn-primary{background:#ff4b4b;color:#fff}
+.btn-primary:hover{background:#e03e3e}
+
+/* Chunk preview item */
+.chunk-item{margin-bottom:10px}
+.chunk-item .chunk-label{font-size:12px;font-weight:700;color:#58a6ff;margin-bottom:3px}
+.chunk-item pre{background:#1a1a2e;border-radius:6px;padding:8px 12px;font-size:12px;line-height:1.6;color:#ccc;white-space:pre-wrap;max-height:80px;overflow:hidden}
+
+/* Save section */
+.save-section{margin-top:8px}
+.save-section label{display:block;font-size:13px;color:#ccc;margin-bottom:10px}
+.save-section input[type="text"]{
+  width:100%;background:#0e1117;color:#fafafa;border:1px solid #3a3a4a;
+  border-radius:6px;padding:7px 10px;font-size:13px;margin-top:4px;
+}
+.save-section input:focus{border-color:#ff4b4b;outline:none}
+
+/* Progress */
+.progress-wrap{margin:12px 0}
+.progress-bar{background:#262730;border-radius:6px;height:8px;overflow:hidden}
+.progress-fill{background:#ff4b4b;height:100%;width:65%;border-radius:6px;transition:width .3s}
+.progress-label{font-size:12px;color:#888;margin-top:4px}
+
+/* Step indicator */
+.steps{display:flex;gap:0;margin-bottom:24px}
+.step{flex:1;text-align:center;padding:10px 8px;font-size:12px;font-weight:600;border-bottom:3px solid #3a3a4a;color:#666;position:relative}
+.step.active{border-bottom-color:#ff4b4b;color:#ff4b4b}
+.step.done{border-bottom-color:#56d364;color:#56d364}
+.step .step-num{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:#3a3a4a;color:#888;font-size:11px;margin-bottom:4px}
+.step.active .step-num{background:#ff4b4b;color:#fff}
+.step.done .step-num{background:#1a7f37;color:#fff}
+
+/* Responsive */
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid #3a3a4a}
+  .main{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <h1>📚 Local RAG Builder</h1>
+  <p class="caption">RAG データ作成・管理ツール</p>
+
+  <hr>
+
+  <h3>Embedding 設定</h3>
+  <label>バックエンド
+    <select>
+      <option selected>ollama</option>
+      <option>sentence-transformers</option>
+    </select>
+  </label>
+  <label>モデル名
+    <input type="text" value="qwen3-embedding">
+  </label>
+  <label>Ollama URL
+    <input type="text" value="http://localhost:11434">
+  </label>
+
+  <hr>
+
+  <h3>コレクション</h3>
+  <div class="col-item">
+    <div class="col-header" onclick="this.parentElement.classList.toggle('open')">
+      <span>📁 radiology_manual (247 chunks)</span>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="col-body" style="display:none">
+      <span>モデル: qwen3-embedding</span>
+      <span>説明: 放射線科テキスト</span>
+      <button class="btn-del">🗑 削除</button>
+    </div>
+  </div>
+  <div class="col-item">
+    <div class="col-header" onclick="this.parentElement.classList.toggle('open')">
+      <span>📁 greenbook7 (1,842 chunks)</span>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="col-body" style="display:none">
+      <span>モデル: BAAI/bge-base-en-v1.5</span>
+      <span>説明: Radiology Review Manual 7th</span>
+      <button class="btn-del">🗑 削除</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+
+  <h2>文書を追加</h2>
+
+  <!-- Step indicator -->
+  <div class="steps">
+    <div class="step done"><span class="step-num">1</span><br>アップロード</div>
+    <div class="step done"><span class="step-num">2</span><br>テキスト抽出</div>
+    <div class="step active"><span class="step-num">3</span><br>チャンク分割</div>
+    <div class="step"><span class="step-num">4</span><br>Embedding &amp; 保存</div>
+  </div>
+
+  <!-- Upload area -->
+  <div class="upload-area">
+    <div class="icon">📎</div>
+    <p>PDF / TXT / MD / CSV ファイルをドラッグ&ドロップ</p>
+    <p class="hint">または クリックしてファイルを選択</p>
+  </div>
+
+  <!-- Success bar (after upload) -->
+  <div class="success-bar">
+    ✅ 抽出完了: 312 ページ / 298 ページにテキスト / 485,210 文字
+  </div>
+
+  <!-- Extracted text preview -->
+  <div class="expander open">
+    <div class="expander-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="arrow">▶</span> 📄 抽出テキスト プレビュー
+    </div>
+    <div class="expander-body">
+      <div class="page-block">
+        <div class="page-label">ページ 1</div>
+        <pre>RADIOLOGY REVIEW MANUAL
+Seventh Edition
+
+Wolfgang Dähnert, MD
+Professor of Radiology
+Department of Radiology
+Temple University Hospital...</pre>
+      </div>
+      <hr class="page-sep">
+      <div class="page-block">
+        <div class="page-label">ページ 2</div>
+        <pre>CONTENTS
+
+Brain Disorders .......................... 1
+Skull and Spine Disorders ................ 85
+Ear, Nose, and Throat Disorders ......... 142
+Chest Disorders ......................... 189...</pre>
+      </div>
+      <hr class="page-sep">
+      <div class="page-block">
+        <div class="page-label">ページ 3</div>
+        <pre>BRAIN DISORDERS
+
+CONGENITAL / DEVELOPMENTAL BRAIN ANOMALIES
+
+Chiari I Malformation
+= downward displacement of cerebellar tonsils
+  below foramen magnum by ≥ 5 mm
+• most common type (3-5% of population)...</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chunk settings -->
+  <h3>チャンク設定</h3>
+  <div class="cols">
+    <label>チャンクサイズ (tokens)
+      <input type="number" value="500">
+    </label>
+    <label>オーバーラップ (tokens)
+      <input type="number" value="80">
+    </label>
+    <label>最小サイズ (tokens)
+      <input type="number" value="50">
+    </label>
+  </div>
+  <button class="btn btn-secondary">チャンク分割を実行</button>
+
+  <!-- Chunk result -->
+  <div class="info-bar" style="margin-top:16px">
+    ℹ️ 1,842 チャンクに分割されました
+  </div>
+
+  <!-- Chunk preview -->
+  <div class="expander">
+    <div class="expander-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="arrow">▶</span> 🔍 チャンク プレビュー
+    </div>
+    <div class="expander-body">
+      <div class="chunk-item">
+        <div class="chunk-label">chunk_00000 (p.3, 1,847 chars)</div>
+        <pre>BRAIN DISORDERS
+
+CONGENITAL / DEVELOPMENTAL BRAIN ANOMALIES
+
+Chiari I Malformation
+= downward displacement of cerebellar tonsils below foramen magnum by ≥ 5 mm
+• most common type (3-5% of population)
+• associated with syringomyelia (20-70%)...</pre>
+      </div>
+      <hr class="page-sep">
+      <div class="chunk-item">
+        <div class="chunk-label">chunk_00001 (p.3, 1,623 chars)</div>
+        <pre>Chiari II Malformation (Arnold-Chiari Malformation)
+= downward displacement of cerebellar vermis, 4th ventricle, brainstem
+• almost always associated with myelomeningocele
+• hydrocephalus in 90%
+• callosal dysgenesis in 80%...</pre>
+      </div>
+      <hr class="page-sep">
+      <div class="chunk-item">
+        <div class="chunk-label">chunk_00002 (p.4, 1,955 chars)</div>
+        <pre>Dandy-Walker Malformation
+= cystic dilatation of 4th ventricle + complete / partial agenesis of
+  cerebellar vermis + enlarged posterior fossa
+• 2-4% of hydrocephalus cases
+• associated anomalies in 50-70%...</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save section -->
+  <h3>コレクションに保存</h3>
+  <div class="save-section">
+    <label>コレクション名
+      <input type="text" value="greenbook7">
+    </label>
+    <label>説明 (任意)
+      <input type="text" value="Radiology Review Manual 7th Edition">
+    </label>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="progress-label">Embedding: 1,198 / 1,842 チャンク</div>
+  </div>
+
+  <button class="btn btn-primary" style="margin-top:12px">Embedding を実行して保存</button>
+
+</div>
+
+<!-- Sidebar toggle for collection items -->
+<script>
+document.querySelectorAll('.col-item .col-header').forEach(h => {
+  h.addEventListener('click', () => {
+    const body = h.nextElementSibling;
+    const arrow = h.querySelector('.arrow');
+    if (body.style.display === 'none') {
+      body.style.display = 'block';
+      arrow.textContent = '▼';
+    } else {
+      body.style.display = 'none';
+      arrow.textContent = '▶';
+    }
+  });
+});
+</script>
+</body>
+</html>
