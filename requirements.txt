@@ -1,0 +1,19 @@
+# UI
+streamlit>=1.30.0
+
+# Search API (chat app integration)
+fastapi>=0.100.0
+uvicorn>=0.20.0
+
+# PDF Processing
+PyMuPDF>=1.24.0
+
+# Embedding
+sentence-transformers>=2.2.0
+
+# Vector DB
+chromadb>=0.4.0
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.60.0
